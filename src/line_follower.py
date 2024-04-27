@@ -69,8 +69,8 @@ class Follower:
 
   def image_callback(self, msg):
     image = self.bridge.imgmsg_to_cv2(msg,desired_encoding='bgr8')
-    cv2.imwrite("original.jpg", image)
-    time.sleep(10)
+    #cv2.imwrite("./image_captures/original.jpg", image)
+    #time.sleep(10)
     hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     #cv2.imwrite("hsv_image.jpg", hsv_image)
     lower_white = np.array([0, 0, 180], dtype=np.uint8)
@@ -83,7 +83,7 @@ class Follower:
 
     res_gray = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
     height, width = res_gray.shape
-    res_gray[:int(height*0.6), :] = 0 # Cut x % of the top image
+    res_gray[:int(height*0.5), :] = 0 # Cut x % of the top image
     cv2.imwrite("res_grey.jpg", res_gray)
     res_edges = cv2.Canny(res_gray, 70, 150)
     #cv2.imwrite("edges.jpg", res_edges)
@@ -122,5 +122,6 @@ class Follower:
     # print(self.speed)
     self.cmd_vel_pub.publish(self.speed)
 
-follower = Follower()
-rospy.spin()
+if __name__ == '__main__':
+  follower = Follower()
+  rospy.spin()
