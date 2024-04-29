@@ -28,9 +28,17 @@ class Follower:
     self.last_seen_angular_speed = 0
     self.front_object = False
     self.object_detection = False
-
+    self.rate = rospy.Rate(10)
+    self.time_thres = 10
+    
 
   def lidar_callback(self, msg):
+    current_time = rospy.Time.now()
+    msg_age = current_time - msg.header.stamp
+    if msg_age.to_sec() > self.time_thres:
+      rospy.loginfo("Ignoring outdated LIDAR data")
+      
+      return
     ranges_len = len(msg.ranges)
     left_laser = msg.ranges[int(ranges_len*0.10):int(ranges_len*0.15)]
     right_laser = msg.ranges[int(ranges_len*0.85):int(ranges_len*0.90)]
@@ -41,33 +49,39 @@ class Follower:
     left_laser_min = min(left_laser)
     middle_laser1_min = min(middle_laser1)
     middle_laser2_min = min(middle_laser2)
-
-
-    if left_laser_min < 0.18:
-      self.speed.angular.z = -0.3
-      self.speed.linear.x = 0
-      self.cmd_vel_pub.publish(self.speed)
-      print("left", left_laser_min)
+    middle_laser_min = min(middle_laser1_min, middle_laser2_min)
+    if right_laser_min < 0.18 and left_laser_min < 0.18:
+      self.speed.angular.z = 0.0
+      self.speed.linear.x = -0.1
+      print("right and left detected", (right_laser_min, left_laser_min))
+      self.front_object = True
       self.object_detection = True
+      self.cmd_vel_pub.publish(self.speed)
+    elif left_laser_min < 0.18:
+      self.cmd_vel_pub.publish(self.speed)
     elif right_laser_min < 0.18:
       self.speed.angular.z = 0.3
       self.speed.linear.x = 0
       print("right", right_laser_min)
-      self.cmd_vel_pub.publish(self.speed)
       self.object_detection = True
-    elif middle_laser1_min < 0.16 or middle_laser2_min < 0.16:
-      self.speed.angular.z = 0.3
-      self.speed.linear.x = 0
-      print("middle", right_laser_min, left_laser_min)
       self.cmd_vel_pub.publish(self.speed)
+    elif middle_laser_min < 0.18 and middle_laser_min > 0:
+      self.speed.angular.z = 0.0
+      self.speed.linear.x = -0.1
+      print("middle", middle_laser1_min)
       self.front_object = True
       self.object_detection = True
+      self.cmd_vel_pub.publish(self.speed)
     else:
       self.object_detection = False
       self.front_object = False
-
-
+    
   def image_callback(self, msg):
+    current_time = rospy.Time.now()
+    msg_age = current_time - msg.header.stamp
+    if msg_age.to_sec() > self.time_thres:
+      rospy.loginfo("Ignoring outdated IMAGE data")
+      return
     image = self.bridge.imgmsg_to_cv2(msg,desired_encoding='bgr8')
     #cv2.imwrite("./image_captures/original.jpg", image)
     #time.sleep(10)
@@ -84,7 +98,7 @@ class Follower:
     res_gray = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
     height, width = res_gray.shape
     res_gray[:int(height*0.5), :] = 0 # Cut x % of the top image
-    cv2.imwrite("res_grey.jpg", res_gray)
+    #cv2.imwrite("res_grey.jpg", res_gray)
     res_edges = cv2.Canny(res_gray, 70, 150)
     #cv2.imwrite("edges.jpg", res_edges)
 
@@ -96,7 +110,6 @@ class Follower:
 
     if total_white_pixels > 0:
       turn_ratio = ((left_white_pixels - right_white_pixels) / total_white_pixels)/2
-
       # Adjust turn speed based on the ratio
       max_turn_speed = 0.5  # Maximum angular speed
       turn_speed = max_turn_speed * turn_ratio
@@ -113,15 +126,31 @@ class Follower:
           else:
             self.speed.angular.z = -0.3
           self.speed.linear.x = 0
-      else:
-        while total_white_pixels < 2000:
-          self.speed.angular.z = 0.3
-          self.speed.linear.x = 0
-          self.cmd_vel_pub.publish(self.speed)
+        self.cmd_vel_pub.publish(self.speed)
 
-    # print(self.speed)
-    self.cmd_vel_pub.publish(self.speed)
+      else:
+
+        if total_white_pixels < 2000:
+          count = 0
+          while count < 1000:
+            self.speed.angular.z = 0.3
+            self.speed.linear.x = 0
+            self.cmd_vel_pub.publish(self.speed)
+            count += 1
+            self.rate.sleep()
+        # else:
+        #   self.object_detection = False
+        #   self.front_object = False
+
+      #print(self.speed)
+    #self.rate.sleep()
+  
 
 if __name__ == '__main__':
   follower = Follower()
+  #rospy.init_node(follower.node_name)
+  #follower.rate.sleep()
+  """while not rospy.is_shutdown():
+    follower.rate.sleep()"""
+  #follower.run()
   rospy.spin()
