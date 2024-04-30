@@ -20,7 +20,22 @@ The purpose of this project is to follow a white line whilst avoiding obstacles 
 
 ROS Version: Noetic - [Installation Instructions](https://wiki.ros.org/noetic/Installation/Ubuntu)
 
-Notice that the Computer Vision model for fruit classification is running in a remote PC for faster inference. On the other hand, the line_follower is running locally on the robot to avoid delays caused in the transmission of the camera topics to the remote PC.
+* Notice that the Computer Vision model for fruit classification is running in a remote PC for faster inference. On the other hand, the line_follower is running locally on the robot to avoid delays caused in the transmission of the camera topics to the remote PC.
+
+To check the IP of your robot/PC run the following command:
+```
+ifconfig | grep inet
+```
+
+#### Dependencies:
+- `gmapping` for the odometry visualization in `rviz`
+```bash
+sudo apt install ros-noetic-slam-gmapping
+```
+- `ultralytics` for the yolo prediction model
+```bash
+pip install ultralytics
+```
 
 ### Step 1: Connect remote computer to run object detection model:
 
@@ -61,14 +76,4 @@ cd ..
 catkin_make --only-pkg-with-deps rosbot_2_pro
 source devel/setup.bash
 roslaunch rosbot_2_pro line_follower.launch
-```
-
-#### Dependencies:
-- `gmapping` for the odometry visualization in `rviz`
-```bash
-sudo apt install ros-noetic-slam-gmapping
-```
-- `ultralytics` for the yolo prediction model
-```bash
-pip install ultralytics
 ```
