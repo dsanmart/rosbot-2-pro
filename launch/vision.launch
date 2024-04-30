@@ -1,0 +1,8 @@
+<launch>
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find rosbot_2_pro)/rviz/fruitninja_gmap.rviz" />
+    <node pkg="rosbot_2_pro" type="fruit_detector.py" name="rosbot_fruit_detector" output="screen"></node>
+    <node pkg="rosbot_2_pro" type="fruit_reactor.py" name="fruit_reactor" output="screen"></node>
+    <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
+        <remap from="scan" to="scan"/>
+    </node>
+</launch>
