@@ -3,17 +3,31 @@
 The purpose of this project is to follow a white line whilst avoiding obstacles and classifying fruit objects from the [freshie fruits dataset](https://universe.roboflow.com/freshie/freshie-fruits)
 
 <p align="center">
-  <img width="60%" src="./assets/fruit_ninja.png"/>
+  <img width="60%" src="./assets/fruitninja.gif"/>
 </p>
 
-# Demo Videos
-
+## Features
 <p align="center">
   <img src="./assets/cam_view.gif" alt="animated"/>
+  <img src="./assets/cam_view_2.gif" alt="animated"/>
+  <img src="./assets/rviz_view.png"  width=400/>
+  <img src="./assets/fruit_detection.jpeg" width=400/>
+  <img src="./assets/hsv_image.jpg"  width=400/>
+  <img src="./assets/box.jpg" width=400/>
 </p>
+
+
+# Rosbot Topics
 <p align="center">
-  <img src="./assets/rviz_view.gif" alt="animated"/>
+  <img src="./assets/rosbot_topics.png" width=500 center/>
 </p>
+* Note that this are the default topics from the rosbot 2 pro and it is missing the topics created by the execution of the package. Some of the topics created are:
+
+  - `fruit_detector`
+  - `visualisation_marker`
+  - `map`
+
+The `fruit_detector` uses a custom `Fruits.msg` to publish the detected fruit in the image. The `visualisation_marker` is used to track the path followed by the rosbot in the `rviz` map environment. The `map` topic is used to visualize the odometry of the rosbot in the `rviz` map environment.
 
 
 # Instructions to run
